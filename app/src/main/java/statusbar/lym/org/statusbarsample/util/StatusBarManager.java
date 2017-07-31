@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
+import statusbar.lym.org.statusbarsample.R;
+
 /**
  * 状态栏相关管理类
  *
@@ -30,13 +32,20 @@ public class StatusBarManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = activity.getWindow();
             if (PhoneSystemUtil.isHuaWei()) {
+                //此标记位是用来设置将状态栏设置成透明，在5.0以后这属于一种极端情况
                 window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             } else {
+                //清除上面的标记位
                 window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             }
+            //此标记位表示当前窗口可为状态栏绘制背景
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(color);
-            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            window.setStatusBarColor(getColor(activity, color));
+            /**
+             * View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN    Activity全屏显示，但状态栏不会被隐藏覆盖
+             * ，状态栏依然可见，Activity顶端布局部分会被状态遮住
+             */
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
@@ -45,19 +54,23 @@ public class StatusBarManager {
         addStatusBar(activity, color, topIsImage);
     }
 
+    private static int getColor(Activity activity, int colorRes) {
+        return activity.getResources().getColor(colorRes);
+    }
+
     private static void addStatusBar(Activity activity, int color, boolean topIsImage) {
         ViewGroup viewGroup = (ViewGroup) activity.findViewById(android.R.id.content);
         View statusBarView = viewGroup.getChildAt(0);
         setPadding(statusBarView, topIsImage, activity);
         //改变颜色时避免重复添加statusBarView
         if (statusBarView != null && statusBarView.getMeasuredHeight() == getStatusBarHeight(activity)) {
-            statusBarView.setBackgroundColor(color);
+            statusBarView.setBackgroundColor(getColor(activity, color));
             return;
         }
         statusBarView = new View(activity);
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 getStatusBarHeight(activity));
-        statusBarView.setBackgroundColor(color);
+        statusBarView.setBackgroundColor(getColor(activity, color));
         viewGroup.addView(statusBarView, lp);
     }
 
@@ -83,5 +96,6 @@ public class StatusBarManager {
         }
         return result;
     }
+
 
 }
